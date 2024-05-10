@@ -1,18 +1,15 @@
 /**
  *
- * CENG342 Project-1
+ * CENG342 Project-2
  *
  * Edge Detection
  *
- * Usage:  mpirun -n <N> executable <input.jpg> <output.jpg> <sequential_output.jpg>
+ * Usage:  mpirun -n <N> executable <input.jpg> <output.jpg> <alternative_sequential_output.jpg>
  *
- * @group_id 06
- * @author  Emre
- * @author  Firat
- * @author  Yasin
+ * @group_id 07
  * @author  Yousif
  *
- * @version 1.0, 31 March 2024
+ * @version 1.0, 10 May 2024
  */
 
 // ReSharper disable CppDFANullDereference
@@ -22,8 +19,8 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include "mpi.h"
 #include <iostream>
+#include "mpi.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -34,7 +31,7 @@
 #define KERNEL_DIMENSION 3
 #define THRESHOLD 40
 #define USE_THRESHOLD 0
-#define USE_LOAD_BALANCING 0
+#define USE_LOAD_BALANCING 1
 
 //Do not use global variables
 
@@ -49,6 +46,7 @@ int main(int argc,char* argv[]) {
         exit(1);
     }
 
+    /* Init MPI */
     MPI_Init(&argc,&argv);
     int m_rank, comm_sz, width, height, bpp;
     MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
@@ -56,6 +54,7 @@ int main(int argc,char* argv[]) {
     std::string inputPath, outputPath;
     uint8_t *input_image = nullptr;
 
+    /* Check if the two image outputs are identical */
     if(m_rank == 0) {
         /* Prepend path to input and output filenames */
         inputPath = RESOURCES_PATH;
@@ -151,20 +150,20 @@ int main(int argc,char* argv[]) {
     /* Verify sequential and parallel images are identical */
     if(m_rank == 0) {
         /* Prepend path to input and output filenames */
-        std::string seq_input = SEQUENTIAL_OUTPUT_PATH;
+        std::string alt_input = SEQUENTIAL_OUTPUT_PATH;
         std::string par_input = PARALLEL_OUTPUT_PATH;
-        seq_input = seq_input + argv[3];
+        alt_input = alt_input + argv[3];
         par_input = par_input + argv[2];
-        uint8_t *seq_img, *par_img;
+        uint8_t *alt_img, *par_img;
         int seq_width, seq_height, seq_bpp;
         int par_width, par_height, par_bpp;
 
         /* Read image in grayscale */
-        seq_img = stbi_load(seq_input.c_str(), &seq_width, &seq_height, &seq_bpp, CHANNEL_NUM);
+        alt_img = stbi_load(alt_input.c_str(), &seq_width, &seq_height, &seq_bpp, CHANNEL_NUM);
 
         /* If image could not be opened, Abort */
         if(stbi_failure_reason()) {
-            std::cerr << stbi_failure_reason() << " \"" + seq_input + "\"\n";
+            std::cerr << stbi_failure_reason() << " \"" + alt_input + "\"\n";
             std::cerr << "Aborting...\n";
             MPI_Abort(MPI_COMM_WORLD, 1);
             exit(1);
@@ -176,29 +175,29 @@ int main(int argc,char* argv[]) {
         if(stbi_failure_reason()) {
             std::cerr << stbi_failure_reason() << " \"" + par_input + "\"\n";
             std::cerr << "Aborting...\n";
-            stbi_image_free(seq_img);
+            stbi_image_free(alt_img);
             MPI_Abort(MPI_COMM_WORLD, 1);
             exit(1);
         }
 
-        std::cout << "Comparing " << seq_input << " and " << par_input << std::endl;
+        std::cout << "Comparing " << alt_input << " and " << par_input << std::endl;
 
         /* Make sure sequential and parallel outputs are the same */
         int err_cnt = 0;
         for(int y = 0; y < height; ++y) {
             for(int x = 0; x < width; ++x) {
-                if(par_img[x + y * width] != seq_img[x + y * width]) {
+                if(par_img[x + y * width] != alt_img[x + y * width]) {
                     ++err_cnt;
                 }
             }
         }
         if(err_cnt == 0)
-            std::cout << "Sequential and Parallel images are identical\n";
+            std::cout << "Parallel and Alternate images are identical\n";
         else
             std::cout << err_cnt << " pixels are mismatched\n";
 
         /* Let go of STB image buffers */
-        stbi_image_free(seq_img);
+        stbi_image_free(alt_img);
         stbi_image_free(par_img);
     }
 
@@ -224,10 +223,10 @@ void par_edgeDetection(uint8_t *input_image, const int width, const int height, 
                 for(int wx = 0; wx < KERNEL_DIMENSION; ++wx) {
                     int xIndex = (x + wx - 1);
                     int yIndex = (y + wy - 1);
-                    /* Duplicate opposite edge values if on barrier pixels */
-                    if(xIndex < 0)
+                    /* Clamp */
+                    if(xIndex <= 0)
                         xIndex = -xIndex;
-                    if(yIndex < 0)
+                    if(yIndex <= 0)
                         yIndex = -yIndex;
                     if(xIndex >= width)
                         xIndex = width - 1;

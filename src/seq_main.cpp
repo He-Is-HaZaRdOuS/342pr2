@@ -1,26 +1,23 @@
 /**
  *
- * CENG342 Project-1
+ * CENG342 Project-2
  *
  * Edge Detection
  *
  * Usage:  executable <input.jpg> <output.jpg>
  *
- * @group_id 06
- * @author  Emre
- * @author  Firat
- * @author  Yasin
+ * @group_id 07
  * @author  Yousif
  *
- * @version 1.0, 31 March 2024
+ * @version 1.0, 10 May 2024
  */
 
 // ReSharper disable CppUseAuto
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include "mpi.h"
 #include <iostream>
+#include "mpi.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -45,7 +42,8 @@ int main(int argc,char* argv[]) {
         exit(1);
     }
 
-    MPI_Init(&argc,&argv);
+    /* Init MPI just to use its timer functionality */
+    MPI_Init(nullptr, nullptr);
     int width, height, bpp;
 
     /* Prepend path to input and output filenames */
@@ -99,10 +97,10 @@ void seq_edgeDetection(uint8_t *input_image, const int width, const int height) 
                 for(int wx = 0; wx < KERNEL_DIMENSION; ++wx) {
                     int xIndex = (x + wx - 1);
                     int yIndex = (y + wy - 1);
-                    /* Duplicate opposite edge values if on barrier pixels */
-                    if(xIndex < 0)
+                    /* Clamp */
+                    if(xIndex <= 0)
                         xIndex = -xIndex;
-                    if(yIndex < 0)
+                    if(yIndex <= 0)
                         yIndex = -yIndex;
                     if(xIndex >= width)
                         xIndex = width - 1;

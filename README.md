@@ -1,9 +1,9 @@
-# 342pr1
-Placeholder repository for CENG342's first project. </br>
-https://github.com/He-Is-HaZaRdOuS/342pr1 </br>
+# 342pr2
+Placeholder repository for CENG342's second project. </br>
+https://github.com/He-Is-HaZaRdOuS/342pr2 </br>
 
 # About
-This project aims to use MPI to speed up image processing algorithms, specifically focusing on edge detection.
+This project aims to use CUDA to speed up image processing algorithms, specifically focusing on edge detection.
 
 # Disclaimer!
 CMake does not recognize non-english characters in the build path. </br>
@@ -39,6 +39,9 @@ Install OpenMPI from your distribution's package manager
 ##### Option 2
 https://docs.open-mpi.org/en/v5.0.x/installing-open-mpi/quickstart.html
 
+## Installing CUDA
+https://docs.nvidia.com/cuda/cuda-installation-guide-linux/
+
 ## Compilation
 open a terminal window and cd into the project folder </br>
 
@@ -66,14 +69,19 @@ To run the sequential executable, open a terminal window and type </br>
 ```bash
 ./sequential <INPUT> <OUTPUT>
 ```
-To run the parallel executable, open a terminal window and type </br>
+To run the parallel MPI executable, open a terminal window and type </br>
 ```bash
-mpirun -n <N> ./parallel <INPUT> <OUTPUT> <SEQUENTIAL_INPUT>
+mpirun -n <N> ./parallel <INPUT> <OUTPUT> <ALTERNATE_SEQUENTIAL_OUTPUT>
+```
+To run the parallel CUDA executable, open a terminal window and type </br>
+```bash
+./cuda <INPUT> <OUTPUT> <ALTERNATE_PARALLEL_OUTPUT>
 ```
 
 The following explains the arguments and their format.
 * N: Number of cores to allocate to the program
 * INPUT: Name of input image file
 * OUTPUT: Name of output image file
-* SEQUENTIAL_INPUT: Name of the output image file from the sequential program
+* ALTERNATE_SEQUENTIAL_OUTPUT: Name of the output image file from the sequential program
+* ALTERNATE_PARALLEL_OUTPUT: Name of the output image file from the parallel mpi program
 </br>
