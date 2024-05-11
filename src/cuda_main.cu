@@ -115,13 +115,17 @@ int main(int argc,char* argv[]) {
     cudaMalloc(reinterpret_cast<void **>(&cuda_input), (width*height));
     cudaMalloc(reinterpret_cast<void **>(&cuda_output), (width*height));
 
-    /* memcpy and memset buffers inside vram */
+    /* memcpy input buffer from system memory into vram */
     cudaMemcpy(cuda_input, input_image, width * height, cudaMemcpyHostToDevice);
+    /* memset output buffer inside vram */
     cudaMemset(cuda_output, 0, width * height);
 
-    /* Assign GRID_SIZE size blocks for each SP */
-    dim3 thPerBlk(GRID_SIZE, GRID_SIZE, 1);
+    /* Launch ((width*height)/GRID_SIZE^2) many SM blocks */
     dim3 blkCnt(ceil(width/GRID_SIZE), ceil(height/GRID_SIZE), 1);
+    /* Assign GRID_SIZE size chunks for each SP */
+    dim3 thPerBlk(GRID_SIZE, GRID_SIZE, 1);
+
+    std::cout << "SM blocks queued up: " << blkCnt.x*blkCnt.y << ". SP threads queued up: " << thPerBlk.x*thPerBlk.y << ". Total thrads queued up: " << blkCnt.x*blkCnt.y*thPerBlk.x*thPerBlk.y << std::endl;
 
     /* Start the timer */
     const double time1= MPI_Wtime();
@@ -135,17 +139,17 @@ int main(int argc,char* argv[]) {
     const double time2= MPI_Wtime();
 
     /* Write error to stdout */
-    if ( cuda_err != cudaSuccess ) {
+    if (cuda_err != cudaSuccess) {
         fprintf(stderr, "CUDA Synchronization failed!: %s\n", cudaGetErrorName(cuda_err));
         exit(1);
     }
 
     printf("Elapsed time: %lf \n",time2-time1);
 
-    /* memcpy output buffer back to input buffer */
+    /* memcpy output buffer from vram back to input buffer in system memory */
     cudaMemcpy(input_image, cuda_output, width * height, cudaMemcpyDeviceToHost);
 
-    /* Write output buffer to disk */
+    /* Write input buffer to disk */
     stbi_write_jpg(outputPath.c_str(), width, height, CHANNEL_NUM, input_image, 100);
     stbi_image_free(input_image);
 

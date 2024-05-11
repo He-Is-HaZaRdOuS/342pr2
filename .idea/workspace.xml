@@ -25,6 +25,7 @@
   <component name="ChangeListManager">
     <list default="true" id="f838c072-8552-4e7e-b12c-e059320a7b43" name="Changes" comment="Implement Sobel's algorithm in CUDA">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cuda_main.cu" beforeDir="false" afterPath="$PROJECT_DIR$/src/cuda_main.cu" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,7 +35,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Release" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
@@ -51,6 +52,8 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="mock:///home/hazardous/CLionProjects/342pr2/src/cuda_main.cu" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file:///usr/include/c++/13/bits/ostream.tcc" root0="FORCE_HIGHLIGHTING" />
     <setting file="file:///usr/local/cuda/include/cuda.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectApplicationVersion">
@@ -119,7 +122,8 @@
       <workItem from="1715343173339" duration="19000" />
       <workItem from="1715343193363" duration="2161000" />
       <workItem from="1715346133297" duration="10429000" />
-      <workItem from="1715366891948" duration="1000" />
+      <workItem from="1715366891948" duration="1261000" />
+      <workItem from="1715420874200" duration="3225000" />
     </task>
     <task id="LOCAL-00001" summary="Import 342pr1">
       <option name="closed" value="true" />
@@ -161,7 +165,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715361049830</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Implement Sobel's algorithm in CUDA">
+      <option name="closed" value="true" />
+      <created>1715366921654</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1715366921654</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
