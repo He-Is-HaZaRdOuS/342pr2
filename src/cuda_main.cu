@@ -34,7 +34,7 @@
 //Do not use global variables
 
 /* CUDA Kernel that applies Sobel's filter */
-__global__ void CUDAedgeDetection(const uint8_t* img, uint8_t* buffer, const u_int64_t width, const u_int64_t height) {
+__global__ void CUDAedgeDetection(const uint8_t* img, uint8_t* buffer, const uint64_t width, const uint64_t height) {
     /* Sobel Convolution Kernels */
     float slider[KERNEL_DIMENSION][KERNEL_DIMENSION] = {0.0};
     constexpr float sobelX[KERNEL_DIMENSION][KERNEL_DIMENSION] = { {-1, 0, 1},{-2, 0, 2},{-1, 0, 1} };
