@@ -76,7 +76,7 @@ __global__ void CUDAedgeDetection(const uint8_t* img, uint8_t* buffer, const uin
     }
 
     /* Write back into modified image buffer */
-    buffer[y * width + x] = sqrt((sumX*sumX)+(sumY*sumY));
+    buffer[y * width + x] = sqrtf((sumX*sumX)+(sumY*sumY));
 }
 
 int main(int argc,char* argv[]) {
@@ -148,6 +148,10 @@ int main(int argc,char* argv[]) {
 
     /* memcpy output buffer from vram back to input buffer in system memory */
     cudaMemcpy(input_image, cuda_output, width * height, cudaMemcpyDeviceToHost);
+
+    /* free vram buffers */
+    cudaFree(cuda_input);
+    cudaFree(cuda_output);
 
     /* Write input buffer to disk */
     stbi_write_jpg(outputPath.c_str(), width, height, CHANNEL_NUM, input_image, 100);
