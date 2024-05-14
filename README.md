@@ -3,7 +3,7 @@ Placeholder repository for CENG342's second project. </br>
 https://github.com/He-Is-HaZaRdOuS/342pr2 </br>
 
 # About
-This project aims to use CUDA to speed up image processing algorithms, specifically focusing on edge detection.
+This project aims to use OMP and CUDA to speed up image processing algorithms, specifically focusing on edge detection.
 
 # Disclaimer!
 CMake does not recognize non-english characters in the build path. </br>

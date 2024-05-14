@@ -4,7 +4,7 @@
  *
  * Edge Detection
  *
- * Usage:  executable <input.jpg> <output.jpg> <alternative_parallel_output.jpg>
+ * Usage:  executable <input.jpg> <output.jpg> <sequential_output.jpg>
  *
  * @group_id 07
  * @author  Yousif
@@ -83,7 +83,7 @@ int main(int argc,char* argv[]) {
 
     /* Abort if # of CLA is invalid */
     if(argc != 4){
-        std::cerr << "Invalid number of arguments, aborting...";
+        std::cerr << "Invalid number of arguments, aborting...\n";
         exit(1);
     }
 
@@ -162,7 +162,7 @@ int main(int argc,char* argv[]) {
     /* Check if the two image outputs are identical */
     {
         /* Prepend path to input and output filenames */
-        std::string alt_input = PARALLEL_OUTPUT_PATH;
+        std::string alt_input = SEQUENTIAL_OUTPUT_PATH;
         std::string par_input = CUDA_OUTPUT_PATH;
         alt_input = alt_input + argv[3];
         par_input = par_input + argv[2];
@@ -202,7 +202,7 @@ int main(int argc,char* argv[]) {
             }
         }
         if(err_cnt == 0)
-            std::cout << "CUDA and Alternate images are identical\n";
+            std::cout << "CUDA and Sequential images are identical\n";
         else
             std::cout << err_cnt << " pixels are mismatched\n";
 

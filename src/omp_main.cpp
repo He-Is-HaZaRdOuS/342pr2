@@ -4,7 +4,7 @@
  *
  * Edge Detection
  *
- * Usage:  executable <input.jpg> <output.jpg>
+ * Usage: executable <input.jpg> <output.jpg> <sequential_output.jpg>
  *
  * @group_id 07
  * @author  Yousif
@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "mpi.h"
+#include "omp.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -37,7 +38,7 @@ float convolve(float slider[KERNEL_DIMENSION][KERNEL_DIMENSION], float kernel[KE
 
 int main(int argc,char* argv[]) {
     /* Abort if # of CLA is invalid */
-    if(argc != 3){
+    if(argc != 4){
         std::cerr << "Invalid number of arguments, aborting...\n";
         exit(1);
     }
@@ -48,7 +49,7 @@ int main(int argc,char* argv[]) {
 
     /* Prepend path to input and output filenames */
     std::string inputPath = RESOURCES_PATH;
-    std::string outputPath = SEQUENTIAL_OUTPUT_PATH;
+    std::string outputPath = OMP_OUTPUT_PATH;
     inputPath = inputPath + argv[1];
     outputPath = outputPath + argv[2];
 
@@ -77,6 +78,59 @@ int main(int argc,char* argv[]) {
     stbi_image_free(input_image);
 
     MPI_Finalize();
+
+    /* Check if the two image outputs are identical */
+    {
+        /* Prepend path to input and output filenames */
+        std::string alt_input = SEQUENTIAL_OUTPUT_PATH;
+        std::string par_input = OMP_OUTPUT_PATH;
+        alt_input = alt_input + argv[3];
+        par_input = par_input + argv[2];
+        uint8_t *alt_img, *par_img;
+        int seq_width, seq_height, seq_bpp;
+        int par_width, par_height, par_bpp;
+
+        /* Read image in grayscale */
+        alt_img = stbi_load(alt_input.c_str(), &seq_width, &seq_height, &seq_bpp, CHANNEL_NUM);
+
+        /* If image could not be opened, Abort */
+        if(stbi_failure_reason()) {
+            std::cerr << stbi_failure_reason() << " \"" + alt_input + "\"\n";
+            std::cerr << "Aborting...\n";
+            exit(1);
+        }
+
+        par_img = stbi_load(par_input.c_str(), &par_width, &par_height, &par_bpp, CHANNEL_NUM);
+
+        /* If image could not be opened, Abort */
+        if(stbi_failure_reason()) {
+            std::cerr << stbi_failure_reason() << " \"" + par_input + "\"\n";
+            std::cerr << "Aborting...\n";
+            stbi_image_free(alt_img);
+            exit(1);
+        }
+
+        std::cout << "Comparing " << alt_input << " and " << par_input << std::endl;
+
+        /* Make sure Local and Alternate outputs are the same */
+        int err_cnt = 0;
+        for(int y = 0; y < height; ++y) {
+            for(int x = 0; x < width; ++x) {
+                if(par_img[x + y * width] != alt_img[x + y * width]) {
+                    ++err_cnt;
+                }
+            }
+        }
+        if(err_cnt == 0)
+            std::cout << "OMP and Sequential images are identical\n";
+        else
+            std::cout << err_cnt << " pixels are mismatched\n";
+
+        /* Let go of STB image buffers */
+        stbi_image_free(alt_img);
+        stbi_image_free(par_img);
+    }
+
     return 0;
 }
 

@@ -11,8 +11,8 @@
   </component>
   <component name="CMakeRunConfigurationManager">
     <generated>
+      <config projectName="342pr2" targetName="omp" />
       <config projectName="342pr2" targetName="sequential" />
-      <config projectName="342pr2" targetName="parallel" />
       <config projectName="342pr2" targetName="cuda" />
     </generated>
   </component>
@@ -23,9 +23,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f838c072-8552-4e7e-b12c-e059320a7b43" name="Changes" comment="Implement Sobel's algorithm in CUDA">
+    <list default="true" id="f838c072-8552-4e7e-b12c-e059320a7b43" name="Changes" comment="Call cudaFree on device">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parallel_output/.gitkeep" beforeDir="false" afterPath="$PROJECT_DIR$/omp_output/.gitkeep" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/cuda_main.cu" beforeDir="false" afterPath="$PROJECT_DIR$/src/cuda_main.cu" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/mpi_main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/omp_main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/seq_main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/seq_main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +56,7 @@
   }
 }</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock:///home/hazardous/CLionProjects/342pr2/src/cuda_main.cu" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/cuda_main.cu" root0="FORCE_HIGHLIGHTING" />
     <setting file="file:///usr/include/c++/13/bits/ostream.tcc" root0="FORCE_HIGHLIGHTING" />
     <setting file="file:///usr/local/cuda/include/cuda.h" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -90,12 +94,17 @@
   }
 }</component>
   <component name="RunManager" selected="CMake Application.cuda">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="cuda" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="342pr2" TARGET_NAME="cuda" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="342pr2" RUN_TARGET_NAME="cuda">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="parallel" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="342pr2" TARGET_NAME="parallel" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="342pr2" RUN_TARGET_NAME="parallel">
+    <configuration name="omp" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="342pr2" TARGET_NAME="omp" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="342pr2" RUN_TARGET_NAME="omp">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
@@ -107,7 +116,7 @@
     </configuration>
     <list>
       <item itemvalue="CMake Application.cuda" />
-      <item itemvalue="CMake Application.parallel" />
+      <item itemvalue="CMake Application.omp" />
       <item itemvalue="CMake Application.sequential" />
     </list>
   </component>
@@ -123,7 +132,13 @@
       <workItem from="1715343193363" duration="2161000" />
       <workItem from="1715346133297" duration="10429000" />
       <workItem from="1715366891948" duration="1261000" />
-      <workItem from="1715420874200" duration="3225000" />
+      <workItem from="1715420874200" duration="3962000" />
+      <workItem from="1715460496168" duration="9000" />
+      <workItem from="1715514666195" duration="265000" />
+      <workItem from="1715515304670" duration="2525000" />
+      <workItem from="1715546824321" duration="229000" />
+      <workItem from="1715618008233" duration="9000" />
+      <workItem from="1715688071884" duration="863000" />
     </task>
     <task id="LOCAL-00001" summary="Import 342pr1">
       <option name="closed" value="true" />
@@ -173,7 +188,31 @@
       <option name="project" value="LOCAL" />
       <updated>1715366921654</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Print SM and SP info">
+      <option name="closed" value="true" />
+      <created>1715424133705</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1715424133705</updated>
+    </task>
+    <task id="LOCAL-00008" summary="u_int64_t -&gt; uint64_t">
+      <option name="closed" value="true" />
+      <created>1715514926971</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1715514926971</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Call cudaFree on device">
+      <option name="closed" value="true" />
+      <created>1715547047896</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1715547047896</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -187,6 +226,9 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Import 342pr1" />
     <MESSAGE value="Implement Sobel's algorithm in CUDA" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implement Sobel's algorithm in CUDA" />
+    <MESSAGE value="Print SM and SP info" />
+    <MESSAGE value="u_int64_t -&gt; uint64_t" />
+    <MESSAGE value="Call cudaFree on device" />
+    <option name="LAST_COMMIT_MESSAGE" value="Call cudaFree on device" />
   </component>
 </project>
