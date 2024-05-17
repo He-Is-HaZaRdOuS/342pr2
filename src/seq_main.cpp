@@ -115,7 +115,7 @@ void seq_edgeDetection(uint8_t *input_image, const int width, const int height) 
             /* Convolve sliding window with kernels (Sobel X and Y gradient) */
             const float gx = convolve(slider, sobelX);
             const float gy = convolve(slider, sobelY);
-            float magnitude = sqrt(gx * gx + gy * gy);
+            float magnitude = sqrtf(gx * gx + gy * gy);
 
 #if USE_THRESHOLD
 		    /* Clamp down color values if below THRESHOLD */

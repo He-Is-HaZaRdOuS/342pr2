@@ -139,22 +139,28 @@ void seq_edgeDetection(uint8_t *input_image, const int width, const int height) 
     /* Declare Kernels */
     float sobelX[KERNEL_DIMENSION][KERNEL_DIMENSION] = { {-1, 0, 1},{-2, 0, 2},{-1, 0, 1} };
     float sobelY[KERNEL_DIMENSION][KERNEL_DIMENSION] = { {-1, -2, -1},{0, 0, 0},{1, 2, 1} };
-    float slider[KERNEL_DIMENSION][KERNEL_DIMENSION];
 
     /* Allocate temporary memory to construct final image */
     uint8_t *output_image = static_cast<uint8_t *>(malloc(width * height * sizeof(uint8_t))); // NOLINT(*-use-auto)
 
+    /* Declare vars ahead of time to privatize later */
+    int xIndex, yIndex, x, y, wx, wy;
+
     /* Iterate through all pixels */
-	for(int y = 0; y < height; ++y) {
-		for(int x = 0; x < width; ++x) {
-            for(int wy = 0; wy < KERNEL_DIMENSION; ++wy) {
-                for(int wx = 0; wx < KERNEL_DIMENSION; ++wx) {
-                    int xIndex = (x + wx - 1);
-                    int yIndex = (y + wy - 1);
+#pragma omp parallel for private(x, wy, wx, xIndex, yIndex) /* Create thread-local vars to eliminate race conditions */
+    for(y = 0; y < height; ++y) {
+        for(x = 0; x < width; ++x) {
+            float slider[KERNEL_DIMENSION][KERNEL_DIMENSION];
+
+            for(wy = 0; wy < KERNEL_DIMENSION; ++wy) {
+                for(wx = 0; wx < KERNEL_DIMENSION; ++wx) {
+                    xIndex = (x + wx - 1);
+                    yIndex = (y + wy - 1);
+
                     /* Clamp */
-                    if(xIndex <= 0)
+                    if(xIndex < 0)
                         xIndex = -xIndex;
-                    if(yIndex <= 0)
+                    if(yIndex < 0)
                         yIndex = -yIndex;
                     if(xIndex >= width)
                         xIndex = width - 1;
@@ -169,17 +175,17 @@ void seq_edgeDetection(uint8_t *input_image, const int width, const int height) 
             /* Convolve sliding window with kernels (Sobel X and Y gradient) */
             const float gx = convolve(slider, sobelX);
             const float gy = convolve(slider, sobelY);
-            float magnitude = sqrt(gx * gx + gy * gy);
+            float magnitude = sqrtf(gx * gx + gy * gy);
 
 #if USE_THRESHOLD
-		    /* Clamp down color values if below THRESHOLD */
-            output_image_u8[x + y * width] = magnitude > THRESHOLD ? 255 : 0;
+            /* Clamp down color values if below THRESHOLD */
+            output_image[x + y * width] = magnitude > THRESHOLD ? 255 : 0;
 #else
-		    /* Otherwise use whatever value outputted from square root */
+            /* Otherwise use whatever value outputted from square root */
             output_image[x + y * width] = static_cast<uint8_t>(magnitude);
 #endif
-		}
-	}
+        }
+    }
 
     /* memcpy final image data to input buffer */
     memcpy(input_image, output_image, width * height * sizeof(uint8_t ));
