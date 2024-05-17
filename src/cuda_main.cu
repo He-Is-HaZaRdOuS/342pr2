@@ -4,7 +4,7 @@
  *
  * Edge Detection
  *
- * Usage:  executable <input.jpg> <output.jpg> <sequential_output.jpg>
+ * Usage:  executable <input.jpg> <output.jpg> <threadsPerBlock> <sequential_output.jpg>
  *
  * @group_id 07
  * @author  Yousif
@@ -29,7 +29,6 @@
 #define KERNEL_DIMENSION 3
 #define THRESHOLD 40
 #define USE_THRESHOLD 0
-#define GRID_SIZE 16
 
 //Do not use global variables
 
@@ -79,10 +78,10 @@ __global__ void CUDAedgeDetection(const uint8_t* img, uint8_t* buffer, const uin
     buffer[y * width + x] = sqrtf((sumX*sumX)+(sumY*sumY));
 }
 
-int main(int argc,char* argv[]) {
+int main(int argc, char* argv[]) {
 
     /* Abort if # of CLA is invalid */
-    if(argc != 4){
+    if(argc != 5){
         std::cerr << "Invalid number of arguments, aborting...\n";
         exit(1);
     }
@@ -96,6 +95,8 @@ int main(int argc,char* argv[]) {
     std::string outputPath = CUDA_OUTPUT_PATH;
     inputPath = inputPath + argv[1];
     outputPath = outputPath + argv[2];
+    const int threadsPerBlock = std::stoi(argv[3]);
+    const int threadsPerDimension = sqrt(threadsPerBlock);
 
     /* Read image in grayscale */
     uint8_t *input_image = stbi_load(inputPath.c_str(), &width, &height, &bpp, CHANNEL_NUM);
@@ -121,9 +122,9 @@ int main(int argc,char* argv[]) {
     cudaMemset(cuda_output, 0, width * height);
 
     /* Launch ((width*height)/GRID_SIZE^2) many SM blocks */
-    dim3 blkCnt(ceil(width/GRID_SIZE), ceil(height/GRID_SIZE), 1);
+    dim3 blkCnt(ceil(width/threadsPerDimension), ceil(height/threadsPerDimension), 1);
     /* Assign GRID_SIZE size chunks for each SP */
-    dim3 thPerBlk(GRID_SIZE, GRID_SIZE, 1);
+    dim3 thPerBlk(threadsPerDimension, threadsPerDimension, 1);
 
     std::cout << "SM blocks queued up: " << blkCnt.x*blkCnt.y << ". SP threads queued up: " << thPerBlk.x*thPerBlk.y << ". Total thrads queued up: " << blkCnt.x*blkCnt.y*thPerBlk.x*thPerBlk.y << std::endl;
 
@@ -164,7 +165,7 @@ int main(int argc,char* argv[]) {
         /* Prepend path to input and output filenames */
         std::string alt_input = SEQUENTIAL_OUTPUT_PATH;
         std::string par_input = CUDA_OUTPUT_PATH;
-        alt_input = alt_input + argv[3];
+        alt_input = alt_input + argv[4];
         par_input = par_input + argv[2];
         uint8_t *alt_img, *par_img;
         int seq_width, seq_height, seq_bpp;

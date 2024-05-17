@@ -3,7 +3,7 @@ Placeholder repository for CENG342's second project. </br>
 https://github.com/He-Is-HaZaRdOuS/342pr2 </br>
 
 # About
-This project aims to use OMP and CUDA to speed up image processing algorithms, specifically focusing on edge detection.
+This project aims to use OpenMP and CUDA to speed up image processing algorithms, specifically focusing on edge detection.
 
 # Disclaimer!
 CMake does not recognize non-english characters in the build path. </br>
@@ -31,13 +31,6 @@ Open a terminal window and execute the following commands line by line </br>
  sudo sh cmake-$version.$build-$os-x86_64.sh --prefix=/opt/cmake #(Type "y" to accept the license agreement and type "n" to forego installing inside the subdirectory)
  cmake --version #(expected output is "cmake version 3.28.1") 
 ```
-
-## Installing MPI
-##### Option 1
-Install OpenMPI from your distribution's package manager
-
-##### Option 2
-https://docs.open-mpi.org/en/v5.0.x/installing-open-mpi/quickstart.html
 
 ## Installing CUDA
 https://docs.nvidia.com/cuda/cuda-installation-guide-linux/
@@ -69,19 +62,18 @@ To run the sequential executable, open a terminal window and type </br>
 ```bash
 ./sequential <INPUT> <OUTPUT>
 ```
-To run the parallel MPI executable, open a terminal window and type </br>
+To run the parallel OMP executable, open a terminal window and type </br>
 ```bash
-mpirun -n <N> ./parallel <INPUT> <OUTPUT> <ALTERNATE_SEQUENTIAL_OUTPUT>
+./omp <INPUT> <OUTPUT> <THREAD_COUNT> <ALTERNATE_SEQUENTIAL_OUTPUT>
 ```
 To run the parallel CUDA executable, open a terminal window and type </br>
 ```bash
-./cuda <INPUT> <OUTPUT> <ALTERNATE_PARALLEL_OUTPUT>
+./cuda <INPUT> <OUTPUT> <THREAD_COUNT> <ALTERNATE_SEQUENTIAL_OUTPUT>
 ```
 
 The following explains the arguments and their format.
-* N: Number of cores to allocate to the program
 * INPUT: Name of input image file
 * OUTPUT: Name of output image file
+* THREAD_COUNT: Number of cores/threads to allocate to the program
 * ALTERNATE_SEQUENTIAL_OUTPUT: Name of the output image file from the sequential program
-* ALTERNATE_PARALLEL_OUTPUT: Name of the output image file from the parallel mpi program
 </br>

@@ -22,11 +22,10 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
             PUBLIC -DNDEBUG -O2)
     target_compile_options(omp
             PUBLIC -DNDEBUG -O2)
+    # Silence CUDA Warnings
+    target_compile_options(cuda
+            PUBLIC -w)
 endif()
-
-# Silence CUDA Warnings
-target_compile_options(cuda
-        PUBLIC -w)
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
