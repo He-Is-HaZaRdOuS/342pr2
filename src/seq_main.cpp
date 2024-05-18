@@ -8,8 +8,11 @@
  *
  * @group_id 07
  * @author  Yousif
+ * @author  Türker
+ * @author  Eren
+ * @author  Aysara
  *
- * @version 1.0, 10 May 2024
+ * @version 1.0, 18 May 2024
  */
 
 // ReSharper disable CppUseAuto
@@ -39,6 +42,7 @@ int main(int argc,char* argv[]) {
     /* Abort if # of CLA is invalid */
     if(argc != 3){
         std::cerr << "Invalid number of arguments, aborting...\n";
+        std::cerr << "Try ./sequential <input.jpg> <output.jpg>\n";
         exit(1);
     }
 

@@ -8,8 +8,11 @@
  *
  * @group_id 07
  * @author  Yousif
+ * @author  Türker
+ * @author  Eren
+ * @author  Aysara
  *
- * @version 1.0, 10 May 2024
+ * @version 1.0, 18 May 2024
  */
 
 // ReSharper disable CppUseAuto
@@ -30,14 +33,15 @@
 #define THRESHOLD 40
 #define USE_THRESHOLD 0
 
+__constant__ float sobelX[KERNEL_DIMENSION][KERNEL_DIMENSION] = { {-1, 0, 1},{-2, 0, 2},{-1, 0, 1} };
+__constant__ float sobelY[KERNEL_DIMENSION][KERNEL_DIMENSION] = { {-1, -2, -1},{0, 0, 0},{1, 2, 1} };
+
 //Do not use global variables
 
 /* CUDA Kernel that applies Sobel's filter */
 __global__ void CUDAedgeDetection(const uint8_t* img, uint8_t* buffer, const uint64_t width, const uint64_t height) {
     /* Sobel Convolution Kernels */
     float slider[KERNEL_DIMENSION][KERNEL_DIMENSION] = {0.0};
-    constexpr float sobelX[KERNEL_DIMENSION][KERNEL_DIMENSION] = { {-1, 0, 1},{-2, 0, 2},{-1, 0, 1} };
-    constexpr float sobelY[KERNEL_DIMENSION][KERNEL_DIMENSION] = { {-1, -2, -1},{0, 0, 0},{1, 2, 1} };
 
     /* Find X and Y indices of current thread */
     int x = threadIdx.x + blockIdx.x * blockDim.x;
@@ -73,9 +77,15 @@ __global__ void CUDAedgeDetection(const uint8_t* img, uint8_t* buffer, const uin
             sumY = sumY + slider[kx][ky] * sobelY[kx][ky];
         }
     }
+    float magnitude = sqrtf((sumX*sumX)+(sumY*sumY));
 
-    /* Write back into modified image buffer */
-    buffer[y * width + x] = sqrtf((sumX*sumX)+(sumY*sumY));
+#if USE_THRESHOLD
+    /* Clamp down color values if below THRESHOLD */
+    buffer[y * width + x] = magnitude > THRESHOLD ? 255 : 0;
+#else
+    /* Otherwise use whatever value outputted from square root */
+    buffer[y * width + x] = static_cast<uint8_t>(magnitude);
+#endif
 }
 
 int main(int argc, char* argv[]) {
@@ -83,6 +93,7 @@ int main(int argc, char* argv[]) {
     /* Abort if # of CLA is invalid */
     if(argc != 5){
         std::cerr << "Invalid number of arguments, aborting...\n";
+        std::cerr << "Try ./cuda <input.jpg> <output.jpg> <threadsPerBlock> <sequential.jpg>\n";
         exit(1);
     }
 

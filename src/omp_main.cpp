@@ -4,12 +4,15 @@
  *
  * Edge Detection
  *
- * Usage: executable <input.jpg> <output.jpg> <sequential_output.jpg>
+ * Usage: executable <input.jpg> <output.jpg> <threadCount> <sequential_output.jpg>
  *
  * @group_id 07
  * @author  Yousif
+ * @author  Türker
+ * @author  Eren
+ * @author  Aysara
  *
- * @version 1.0, 10 May 2024
+ * @version 1.0, 18 May 2024
  */
 
 // ReSharper disable CppUseAuto
@@ -33,13 +36,14 @@
 //Do not use global variables
 
 /* Function prototypes */
-void seq_edgeDetection(uint8_t *input_image, int width, int height);
+void seq_edgeDetection(uint8_t *input_image, int width, int height, int threadCount);
 float convolve(float slider[KERNEL_DIMENSION][KERNEL_DIMENSION], float kernel[KERNEL_DIMENSION][KERNEL_DIMENSION]);
 
 int main(int argc,char* argv[]) {
     /* Abort if # of CLA is invalid */
-    if(argc != 4){
+    if(argc != 5){
         std::cerr << "Invalid number of arguments, aborting...\n";
+        std::cerr << "Try ./omp <input.jpg> <output.jpg> <threadCount> <sequential.jpg>\n";
         exit(1);
     }
 
@@ -52,6 +56,7 @@ int main(int argc,char* argv[]) {
     std::string outputPath = OMP_OUTPUT_PATH;
     inputPath = inputPath + argv[1];
     outputPath = outputPath + argv[2];
+    int threadCount = std::stoi(argv[3]);
 
     /* Read image in grayscale */
     uint8_t *input_image = stbi_load(inputPath.c_str(), &width, &height, &bpp, CHANNEL_NUM);
@@ -68,7 +73,7 @@ int main(int argc,char* argv[]) {
     /* Start the timer */
     const double time1= MPI_Wtime();
 
-    seq_edgeDetection(input_image, width, height);
+    seq_edgeDetection(input_image, width, height, threadCount);
 
     /* Stop the timer */
     const double time2= MPI_Wtime();
@@ -84,7 +89,7 @@ int main(int argc,char* argv[]) {
         /* Prepend path to input and output filenames */
         std::string alt_input = SEQUENTIAL_OUTPUT_PATH;
         std::string par_input = OMP_OUTPUT_PATH;
-        alt_input = alt_input + argv[3];
+        alt_input = alt_input + argv[4];
         par_input = par_input + argv[2];
         uint8_t *alt_img, *par_img;
         int seq_width, seq_height, seq_bpp;
@@ -135,10 +140,11 @@ int main(int argc,char* argv[]) {
 }
 
 /* Apply Sobel's Operator  */
-void seq_edgeDetection(uint8_t *input_image, const int width, const int height) {
+void seq_edgeDetection(uint8_t *input_image, const int width, const int height, const int threadCount) {
     /* Declare Kernels */
     float sobelX[KERNEL_DIMENSION][KERNEL_DIMENSION] = { {-1, 0, 1},{-2, 0, 2},{-1, 0, 1} };
     float sobelY[KERNEL_DIMENSION][KERNEL_DIMENSION] = { {-1, -2, -1},{0, 0, 0},{1, 2, 1} };
+    float slider[KERNEL_DIMENSION][KERNEL_DIMENSION];
 
     /* Allocate temporary memory to construct final image */
     uint8_t *output_image = static_cast<uint8_t *>(malloc(width * height * sizeof(uint8_t))); // NOLINT(*-use-auto)
@@ -147,11 +153,9 @@ void seq_edgeDetection(uint8_t *input_image, const int width, const int height) 
     int xIndex, yIndex, x, y, wx, wy;
 
     /* Iterate through all pixels */
-#pragma omp parallel for private(x, wy, wx, xIndex, yIndex) /* Create thread-local vars to eliminate race conditions */
+    #pragma omp parallel for collapse(2) private(x, wy, wx, xIndex, yIndex, slider) num_threads(threadCount)
     for(y = 0; y < height; ++y) {
         for(x = 0; x < width; ++x) {
-            float slider[KERNEL_DIMENSION][KERNEL_DIMENSION];
-
             for(wy = 0; wy < KERNEL_DIMENSION; ++wy) {
                 for(wx = 0; wx < KERNEL_DIMENSION; ++wx) {
                     xIndex = (x + wx - 1);
