@@ -19,8 +19,8 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <chrono>
 #include <iostream>
-#include "mpi.h"
 #include "omp.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -39,6 +39,28 @@
 void seq_edgeDetection(uint8_t *input_image, int width, int height, int threadCount);
 float convolve(float slider[KERNEL_DIMENSION][KERNEL_DIMENSION], float kernel[KERNEL_DIMENSION][KERNEL_DIMENSION]);
 
+class Timer {
+public:
+    Timer() {
+        m_StartTimepoint = std::chrono::high_resolution_clock::now();
+    }
+
+    ~Timer() = default;
+
+    double Stop() {
+        m_EndTimepoint = std::chrono::high_resolution_clock::now();
+
+        const uint64_t start = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimepoint).time_since_epoch().count();
+        const uint64_t end = std::chrono::time_point_cast<std::chrono::microseconds>(m_EndTimepoint).time_since_epoch().count();
+
+        const std::chrono::duration<uint64_t, std::ratio<1, 1000000>>::rep duration = (end - start);
+        return static_cast<double>(duration) * 0.000001;
+    }
+private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimepoint;
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_EndTimepoint;
+};
+
 int main(int argc,char* argv[]) {
     /* Abort if # of CLA is invalid */
     if(argc != 5){
@@ -47,8 +69,6 @@ int main(int argc,char* argv[]) {
         exit(1);
     }
 
-    /* Init MPI just to use its timer functionality */
-    MPI_Init(nullptr, nullptr);
     int width, height, bpp;
 
     /* Prepend path to input and output filenames */
@@ -57,6 +77,11 @@ int main(int argc,char* argv[]) {
     inputPath = inputPath + argv[1];
     outputPath = outputPath + argv[2];
     int threadCount = std::stoi(argv[3]);
+    if(threadCount <= 0) {
+        std::cerr << "Invalid argument provided, aborting...\n";
+        std::cerr << "Argument <threadCount> should be a positive integer bigger than 0\n";
+        exit(1);
+    }
 
     /* Read image in grayscale */
     uint8_t *input_image = stbi_load(inputPath.c_str(), &width, &height, &bpp, CHANNEL_NUM);
@@ -71,18 +96,16 @@ int main(int argc,char* argv[]) {
     printf("Input: %s , Output: %s  \n",inputPath.c_str(), outputPath.c_str());
 
     /* Start the timer */
-    const double time1= MPI_Wtime();
+    Timer t;
 
     seq_edgeDetection(input_image, width, height, threadCount);
 
     /* Stop the timer */
-    const double time2= MPI_Wtime();
-    printf("Elapsed time: %lf \n",time2-time1);
+    double elapsedTime = t.Stop();
+    printf("Elapsed time: %lf seconds (%lf ms) \n",elapsedTime, elapsedTime*1000);
 
     stbi_write_jpg(outputPath.c_str(), width, height, CHANNEL_NUM, input_image, 100);
     stbi_image_free(input_image);
-
-    MPI_Finalize();
 
     /* Check if the two image outputs are identical */
     {

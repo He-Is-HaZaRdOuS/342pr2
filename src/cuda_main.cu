@@ -19,8 +19,8 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <chrono>
 #include <iostream>
-#include "mpi.h"
 #include "cuda.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -88,6 +88,28 @@ __global__ void CUDAedgeDetection(const uint8_t* img, uint8_t* buffer, const uin
 #endif
 }
 
+class Timer {
+public:
+    Timer() {
+        m_StartTimepoint = std::chrono::high_resolution_clock::now();
+    }
+
+    ~Timer() = default;
+
+    double Stop() {
+        m_EndTimepoint = std::chrono::high_resolution_clock::now();
+
+        const uint64_t start = std::chrono::time_point_cast<std::chrono::microseconds>(m_StartTimepoint).time_since_epoch().count();
+        const uint64_t end = std::chrono::time_point_cast<std::chrono::microseconds>(m_EndTimepoint).time_since_epoch().count();
+
+        const std::chrono::duration<uint64_t, std::ratio<1, 1000000>>::rep duration = (end - start);
+        return static_cast<double>(duration) * 0.000001;
+    }
+private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTimepoint;
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_EndTimepoint;
+};
+
 int main(int argc, char* argv[]) {
 
     /* Abort if # of CLA is invalid */
@@ -96,9 +118,6 @@ int main(int argc, char* argv[]) {
         std::cerr << "Try ./cuda <input.jpg> <output.jpg> <threadsPerBlock> <sequential.jpg>\n";
         exit(1);
     }
-
-    /* Init MPI just to use its timer functionality */
-    MPI_Init(nullptr, nullptr);
     int width, height, bpp;
 
     /* Prepend path to input and output filenames */
@@ -107,6 +126,11 @@ int main(int argc, char* argv[]) {
     inputPath = inputPath + argv[1];
     outputPath = outputPath + argv[2];
     const int threadsPerBlock = std::stoi(argv[3]);
+    if(threadsPerBlock <= 0) {
+        std::cerr << "Invalid argument provided, aborting...\n";
+        std::cerr << "Argument <threadsPerBlock> should be a positive integer bigger than 0\n";
+        exit(1);
+    }
     const int threadsPerDimension = sqrt(threadsPerBlock);
 
     /* Read image in grayscale */
@@ -140,7 +164,7 @@ int main(int argc, char* argv[]) {
     std::cout << "SM blocks queued up: " << blkCnt.x*blkCnt.y << ". SP threads queued up: " << thPerBlk.x*thPerBlk.y << ". Total thrads queued up: " << blkCnt.x*blkCnt.y*thPerBlk.x*thPerBlk.y << std::endl;
 
     /* Start the timer */
-    const double time1= MPI_Wtime();
+    Timer t;
 
     /* Call CUDA Kernel */
     CUDAedgeDetection<<<blkCnt, thPerBlk>>>(cuda_input, cuda_output, width, height);
@@ -148,7 +172,7 @@ int main(int argc, char* argv[]) {
     cudaError_t cuda_err = cudaDeviceSynchronize();
 
     /* Stop the timer */
-    const double time2= MPI_Wtime();
+    double elapsedTime = t.Stop();
 
     /* Write error to stdout */
     if (cuda_err != cudaSuccess) {
@@ -156,7 +180,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    printf("Elapsed time: %lf \n",time2-time1);
+    printf("Elapsed time: %lf seconds (%lf ms) \n",elapsedTime, elapsedTime*1000);
 
     /* memcpy output buffer from vram back to input buffer in system memory */
     cudaMemcpy(input_image, cuda_output, width * height, cudaMemcpyDeviceToHost);
@@ -168,8 +192,6 @@ int main(int argc, char* argv[]) {
     /* Write input buffer to disk */
     stbi_write_jpg(outputPath.c_str(), width, height, CHANNEL_NUM, input_image, 100);
     stbi_image_free(input_image);
-
-    MPI_Finalize();
 
     /* Check if the two image outputs are identical */
     {
